@@ -4,6 +4,7 @@ const morgan = require('morgan')
 const cors = require('cors')
 const helmet = require('helmet')
 const { NODE_ENV } = require('./config')
+const { v4: uuid } = require('uuid')
 
 const app = express()
 
@@ -15,6 +16,23 @@ app.use(morgan(morganOption))
 app.use(express.json())
 app.use(helmet())
 app.use(cors())
+
+const users = [
+    {
+        "id": "3c8da4d5-1597-46e7-baa1-e402aed70d80",
+        "username": "sallyStudent",
+        "password": "c00d1ng1sc00l",
+        "favoriteClub": "Cache Valley Stone Society",
+        "newsLetter": "true"
+      },
+      {
+        "id": "ce20079c-2326-4f17-8ac4-f617bfd28b7f",
+        "username": "johnBlocton",
+        "password": "veryg00dpassw0rd",
+        "favoriteClub": "Salt City Curling Club",
+        "newsLetter": "false"
+      }
+]
 
 app.post('/', (req, res) => {
     console.log(req.body)
@@ -63,6 +81,37 @@ app.post('/user', (req, res) => {
             .status(400)
             .send('Password must contain at least one digit')
     }
+
+    //validate valid clubs
+    const clubs = [
+        'Cache Valley Stone Society',
+        'Ogden Curling Club',
+        'Park City Curling Club',
+        'Salt City Curling Club',
+        'Utah Olympic Oval Curling Club'
+    ]
+    if(!clubs.includes(favoriteClub)) {
+        return res
+            .status(400)
+            .send('not a valid club')
+    }
+
+    //construct object and push to local store
+    const id = uuid()
+    const newUser = {
+        id,
+        username,
+        password,
+        favoriteClub,
+        newsLetter
+    };
+
+    users.push(newUser)
+
+    res
+        .status(201)
+        .location(`http://localhost:8000/user/${id}`)
+        .json(newUser)
 })
 
 app.use(function errorHandler(error, req, res, next) {
